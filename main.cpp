@@ -12,10 +12,11 @@ int main(int argc, char** argv) {
 	commandLineParser.addPositionalArgument("[file]", "Image file to open.");
 	commandLineParser.process(QCoreApplication::arguments());
 	ccnt::Window window;
-	if (!commandLineParser.positionalArguments().isEmpty()
-			&& !window.loadImage(commandLineParser.positionalArguments().front())) {
+	if (!commandLineParser.positionalArguments().isEmpty()) {
+		window.loadImage(commandLineParser.positionalArguments().front());
+	} else {
 		return -1;
 	}
-	window.show();
+	window.showMaximized();
 	return app.exec();
 }

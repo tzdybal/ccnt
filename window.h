@@ -3,6 +3,7 @@
 #include <QtWidgets/qmainwindow.h>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QScrollArea>
+#include <QtWidgets/QGroupBox>
 #include <QtCore/QString>
 
 
@@ -13,10 +14,16 @@ public:
 	Window();
 	virtual ~Window();
 
-	bool loadImage(const QString& file);
+	void loadImage(const QString& file);
 private:
+	QString file;
 	QLabel* imageLabel = nullptr;
 	QScrollArea* scrollArea = nullptr;
+
+Q_OBJECT
+
+private slots:
+	void findColonies();
 };
 
 } // namespace ccnt
