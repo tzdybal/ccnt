@@ -10,7 +10,11 @@
 
 namespace ccnt {
 
-Counter::Counter(cv::Mat& img) : img(img), parameters(getDefaultParameters()) {}
+Counter::Counter() : parameters(getDefaultParameters()) {}
+
+void Counter::setImage(const cv::Mat& i) {
+	img = i;
+}
 
 Counter::Params Counter::getParameters() const
 {

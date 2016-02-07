@@ -6,6 +6,7 @@
 #include <QtWidgets/QGroupBox>
 #include <QtCore/QString>
 
+#include "widgets.h"
 
 namespace ccnt {
 
@@ -17,7 +18,7 @@ public:
 	void loadImage(const QString& file);
 private:
 	QString file;
-	QLabel* imageLabel = nullptr;
+	CounterWidget* imageLabel = nullptr;
 	QScrollArea* scrollArea = nullptr;
 
 Q_OBJECT

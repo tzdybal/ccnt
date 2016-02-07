@@ -17,14 +17,12 @@
 namespace ccnt {
 
 Window::Window() {
-	imageLabel = new QLabel();
-	imageLabel->setBackgroundRole(QPalette::Base);
+	imageLabel = new CounterWidget(this);
 	imageLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-	imageLabel->setScaledContents(true);
 
-	scrollArea = new QScrollArea;
-	scrollArea->setBackgroundRole(QPalette::Dark);
-	scrollArea->setWidget(imageLabel);
+	//scrollArea = new QScrollArea;
+	//scrollArea->setBackgroundRole(QPalette::Dark);
+	//scrollArea->setWidget(imageLabel);
 
 	Counter::Params params = Counter::getDefaultParameters();
 
@@ -92,7 +90,7 @@ Window::Window() {
 	dummy->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Expanding);
 	layout->addWidget(dummy, row, 0);
 
-	layout->addWidget(scrollArea, 0, 2, -1, 1);
+	layout->addWidget(imageLabel, 0, 2, -1, 1);
 	layout->setColumnStretch(1, 0);
 	layout->setColumnStretch(2, 10);
 
@@ -111,6 +109,10 @@ void Window::loadImage(const QString& file)
 }
 
 void Window::findColonies() {
+	imageLabel->loadImage(file);
+	imageLabel->adjustSize();
+
+	/*
 	cv::Mat	img = cv::imread(file.toStdString());
 	Counter counter(img);
 	counter.findColonies();
@@ -142,6 +144,7 @@ void Window::findColonies() {
 	//scaleFactor = 1.0;
 
 	imageLabel->adjustSize();
+	*/
 
 
 	setWindowFilePath(file);

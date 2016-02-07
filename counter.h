@@ -19,7 +19,8 @@ struct Colony {
 
 class Counter {
 public:
-	Counter(cv::Mat& img);
+	Counter();
+	void setImage(const cv::Mat& img);
 
 	typedef cv::SimpleBlobDetector::Params Params;
 
@@ -36,7 +37,7 @@ public:
 	std::vector<Colony> getAutoColonies();
 	std::vector<Colony> getExtraColonies();
 private:
-	cv::Mat& img;
+	cv::Mat img;
 	Params parameters;
 
 	std::vector<Colony> extraColonies;

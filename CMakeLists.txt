@@ -16,6 +16,7 @@ set(CMAKE_AUTOMOC ON)
 # Tell CMake to create the helloworld executable
 add_executable(ccnt main.cpp
 	window.h window.cpp
+	widgets.h widgets.cpp
 	counter.h counter.cpp
 	converter.h converter.cpp
 )
