@@ -29,14 +29,14 @@ Counter::Params Counter::getDefaultParameters() {
 	params.maxArea = 1000;
 
 	params.minThreshold = 1;
-	params.thresholdStep = 5;
-	params.maxThreshold = 100;
+	params.thresholdStep = 1;
+	params.maxThreshold = 255;
 
 	params.filterByColor = false;
 	params.filterByInertia = false;
 	params.filterByCircularity = true;
 	params.filterByConvexity = false;
-	params.minDistBetweenBlobs = 0.0f;
+	params.minDistBetweenBlobs = -10.0f;
 
 	return params;
 }
@@ -47,8 +47,6 @@ void Counter::setParameters(const Counter::Params& params)
 }
 
 void Counter::findColonies() {
-
-
 	cv::SimpleBlobDetector detector(parameters);
 	detector.detect(img, keypoints);
 }
@@ -58,11 +56,17 @@ void Counter::addExtraColony(const Colony& colony)
 	extraColonies.push_back(colony);
 }
 
-void Counter::removeExtraColonyAt(int x, int y)
+bool Counter::removeExtraColoniesAt(int x, int y)
 {
-	extraColonies.erase(std::remove_if(extraColonies.begin(), extraColonies.end(), [x, y](const Colony& c) {
+	auto iter = std::remove_if(extraColonies.begin(), extraColonies.end(), [x, y](const Colony& c) {
 		return std::abs(c.x - x) <= c.r && std::abs(c.y - y) <= c.r;
-	}), extraColonies.end());
+	});
+	if (iter != extraColonies.end()) {
+		extraColonies.erase(iter, extraColonies.end());
+		return true;
+	} else {
+		return false;
+	}
 }
 
 size_t Counter::getCount()

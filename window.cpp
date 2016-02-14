@@ -17,12 +17,14 @@
 namespace ccnt {
 
 Window::Window() {
-	imageLabel = new CounterWidget(this);
-	imageLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	scrollArea = new QScrollArea;
+	scrollArea->setBackgroundRole(QPalette::Dark);
 
-	//scrollArea = new QScrollArea;
-	//scrollArea->setBackgroundRole(QPalette::Dark);
-	//scrollArea->setWidget(imageLabel);
+	counterWidget = new CounterWidget(scrollArea);
+	//counterWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+	scrollArea->setWidgetResizable(true);
+	scrollArea->setWidget(counterWidget);
 
 	Counter::Params params = Counter::getDefaultParameters();
 
@@ -31,7 +33,7 @@ Window::Window() {
 
 
 	QLabel *minAreaLabel = new QLabel(tr("Minimum area:"));
-	QSpinBox *minAreaBox = new QSpinBox();
+	minAreaBox = new QSpinBox();
 	minAreaBox->setMinimum(0);
 	minAreaBox->setMaximum(1000);
 	minAreaBox->setValue(params.minArea);
@@ -41,7 +43,7 @@ Window::Window() {
 	++row;
 
 	QLabel *maxAreaLabel = new QLabel(tr("Maximum area:"));
-	QSpinBox *maxAreaBox = new QSpinBox();
+	maxAreaBox = new QSpinBox();
 	maxAreaBox->setMinimum(0);
 	maxAreaBox->setMaximum(1000);
 	maxAreaBox->setValue(params.maxArea);
@@ -51,7 +53,7 @@ Window::Window() {
 	++row;
 
 	QLabel *minThresholdLabel = new QLabel(tr("Minimum threshold:"));
-	QSpinBox *minThresholdBox = new QSpinBox();
+	minThresholdBox = new QSpinBox();
 	minThresholdBox->setMinimum(0);
 	minThresholdBox->setMaximum(1000);
 	minThresholdBox->setValue(params.minThreshold);
@@ -61,17 +63,19 @@ Window::Window() {
 	++row;
 
 	QLabel *maxThresholdLabel = new QLabel(tr("Maximum threshold:"));
-	QSpinBox *maxThresholdBox = new QSpinBox();
+	maxThresholdBox = new QSpinBox();
 	maxThresholdBox->setMinimum(0);
 	maxThresholdBox->setMaximum(1000);
 	maxThresholdBox->setValue(params.maxThreshold);
+
 
 	layout->addWidget(maxThresholdLabel, row, 0);
 	layout->addWidget(maxThresholdBox, row, 1);
 	++row;
 
+
 	QLabel *thresholdStepsLabel = new QLabel(tr("Threshold steps:"));
-	QSpinBox *thresholdStepsBox = new QSpinBox();
+	thresholdStepsBox = new QSpinBox();
 	thresholdStepsBox->setMinimum(1);
 	thresholdStepsBox->setMaximum(100);
 	thresholdStepsBox->setValue(10);
@@ -79,6 +83,19 @@ Window::Window() {
 	layout->addWidget(thresholdStepsLabel, row, 0);
 	layout->addWidget(thresholdStepsBox, row, 1);
 	++row;
+
+	QLabel *manualSelectionLabel = new QLabel(tr("Selection threshold:"));
+	manualSelectionBox = new QSpinBox();
+	manualSelectionBox->setMinimum(0);
+	manualSelectionBox->setMaximum(50);
+	manualSelectionBox->setValue(3);
+
+
+	layout->addWidget(manualSelectionLabel, row, 0);
+	layout->addWidget(manualSelectionBox, row, 1);
+	++row;
+
+	QObject::connect(manualSelectionBox, SIGNAL(valueChanged(int)), this, SLOT(updateManualSelection(int)));
 
 	QPushButton *findColoniesButton = new QPushButton(tr("Find colonies"));
 	layout->addWidget(findColoniesButton, row, 0, 1, 2);
@@ -90,7 +107,7 @@ Window::Window() {
 	dummy->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Expanding);
 	layout->addWidget(dummy, row, 0);
 
-	layout->addWidget(imageLabel, 0, 2, -1, 1);
+	layout->addWidget(scrollArea, 0, 2, -1, 1);
 	layout->setColumnStretch(1, 0);
 	layout->setColumnStretch(2, 10);
 
@@ -109,8 +126,15 @@ void Window::loadImage(const QString& file)
 }
 
 void Window::findColonies() {
-	imageLabel->loadImage(file);
-	imageLabel->adjustSize();
+	counterWidget->loadImage(file);
+	cv::SimpleBlobDetector::Params params = Counter::getDefaultParameters();
+	params.minArea = minAreaBox->value();
+	params.maxArea = maxAreaBox->value();
+	params.minThreshold = minThresholdBox->value();
+	params.maxThreshold = maxThresholdBox->value();
+	params.thresholdStep = std::floor(1.0 * (params.maxThreshold - params.minThreshold) / thresholdStepsBox->value());
+	counterWidget->setParams(params);
+	counterWidget->adjustSize();
 
 	/*
 	cv::Mat	img = cv::imread(file.toStdString());
@@ -148,6 +172,10 @@ void Window::findColonies() {
 
 
 	setWindowFilePath(file);
+}
+
+void Window::updateManualSelection(int threshold) {
+	counterWidget->setManualSelection(threshold);
 }
 
 } // namespace cct

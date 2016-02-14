@@ -31,7 +31,7 @@ public:
 	void findColonies();
 
 	void addExtraColony(const Colony& colony);
-	void removeExtraColonyAt(int x, int y);
+	bool removeExtraColoniesAt(int x, int y);
 
 	size_t getCount();
 	std::vector<Colony> getAutoColonies();

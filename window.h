@@ -4,6 +4,7 @@
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QScrollArea>
 #include <QtWidgets/QGroupBox>
+#include <QtWidgets/QSpinBox>
 #include <QtCore/QString>
 
 #include "widgets.h"
@@ -18,13 +19,22 @@ public:
 	void loadImage(const QString& file);
 private:
 	QString file;
-	CounterWidget* imageLabel = nullptr;
+	CounterWidget* counterWidget = nullptr;
 	QScrollArea* scrollArea = nullptr;
+
+	QSpinBox* minAreaBox;
+	QSpinBox* maxAreaBox;
+	QSpinBox* minThresholdBox;
+	QSpinBox* maxThresholdBox;
+	QSpinBox* thresholdStepsBox;
+	QSpinBox* manualSelectionBox;
+
 
 Q_OBJECT
 
 private slots:
 	void findColonies();
+	void updateManualSelection(int);
 };
 
 } // namespace ccnt

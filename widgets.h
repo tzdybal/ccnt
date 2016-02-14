@@ -12,13 +12,23 @@ class CounterWidget : public QWidget {
 public:
 	CounterWidget(QWidget *parent) : QWidget(parent) {}
 	void loadImage(const QFile&);
+	void save(const QString& file);
 	void setParams(const cv::SimpleBlobDetector::Params&);
+	void setManualSelection(int threshold);
 
 private:
 	cv::Mat ocvImage;
+	QImage qtImage;
 	Counter counter;
-	// QWidget interface
+	int selectionThreshold;
 
+
+	static constexpr double pi = 4 * std::atan(1);
+	Colony findCircularColony(int x, int y);
+
+	void doPaint(QPainter& painter, const QRect& rect);
+
+	// QWidget interface
 	Q_OBJECT
 protected:
 	void mousePressEvent(QMouseEvent*);
