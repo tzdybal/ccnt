@@ -78,7 +78,7 @@ Window::Window() {
 	thresholdStepsBox = new QSpinBox();
 	thresholdStepsBox->setMinimum(1);
 	thresholdStepsBox->setMaximum(100);
-	thresholdStepsBox->setValue(10);
+	thresholdStepsBox->setValue(100);
 
 	layout->addWidget(thresholdStepsLabel, row, 0);
 	layout->addWidget(thresholdStepsBox, row, 1);
@@ -87,8 +87,8 @@ Window::Window() {
 	QLabel *manualSelectionLabel = new QLabel(tr("Selection threshold:"));
 	manualSelectionBox = new QSpinBox();
 	manualSelectionBox->setMinimum(0);
-	manualSelectionBox->setMaximum(50);
-	manualSelectionBox->setValue(3);
+	manualSelectionBox->setMaximum(100);
+	manualSelectionBox->setValue(30);
 
 
 	layout->addWidget(manualSelectionLabel, row, 0);
@@ -102,6 +102,12 @@ Window::Window() {
 	++row;
 
 	QObject::connect(findColoniesButton, SIGNAL(clicked(bool)), this, SLOT(findColonies()));
+
+	QPushButton *saveButton = new QPushButton(tr("Save"));
+	layout->addWidget(saveButton, row, 0, 1, 2);
+	++row;
+
+	QObject::connect(saveButton, SIGNAL(clicked(bool)), this, SLOT(save()));
 
 	QWidget *dummy = new QWidget();
 	dummy->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Expanding);
@@ -172,6 +178,13 @@ void Window::findColonies() {
 
 
 	setWindowFilePath(file);
+}
+
+void Window::save() {
+	QString img(file.replace(".jpg", "_results.jpg", Qt::CaseInsensitive));
+
+	QString data(file.replace(".jpg", "_results.cvs", Qt::CaseInsensitive));
+	counterWidget->save(img, data);
 }
 
 void Window::updateManualSelection(int threshold) {

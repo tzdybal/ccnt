@@ -1,5 +1,8 @@
 #include "widgets.h"
 
+#include <iostream>
+#include <fstream>
+
 #include <QMouseEvent>
 #include <QPaintEvent>
 #include <QPainter>
@@ -17,7 +20,6 @@ void CounterWidget::loadImage(const QFile& img) {
 	ocvImage = cv::imread(img.fileName().toStdString());
 	qtImage = util::openCVtoQtImage(ocvImage);
 
-
 	this->setMinimumHeight(ocvImage.rows);
 	this->setMinimumWidth(ocvImage.cols);
 
@@ -27,18 +29,35 @@ void CounterWidget::loadImage(const QFile& img) {
 	update();
 }
 
-void CounterWidget::save(const QString& file){
+void CounterWidget::save(const QString& imageFile, const QString& dataFile) {
 	QImage img = qtImage;
 	QPainter painter(&img);
 	doPaint(painter, img.rect());
 
-	img.save(file);
+	img.save(imageFile, 0, 95);
+
+	std::ofstream ofs;
+	ofs.open(dataFile.toStdString(), std::ios_base::trunc);
+
+	auto params = counter.getParameters();
+
+	ofs << params.minArea << ' '
+		<< params.maxArea << ' '
+		<< params.minThreshold << ' '
+		<< params.maxThreshold << ' '
+		<< params.thresholdStep << ' '
+		<< selectionThreshold << std::endl;
+
+	for (auto c : counter.getExtraColonies()) {
+		ofs << c.x << ' ' << c.y << ' ' << c.r << std::endl;
+	}
+
+	ofs.close();
 }
 
 void CounterWidget::setParams(const cv::SimpleBlobDetector::Params& params) {
 	counter.setParameters(params);
 	counter.findColonies();
-	save("/tmp/test.png");
 	update();
 }
 
@@ -125,7 +144,7 @@ void CounterWidget::doPaint(QPainter& painter, const QRect& rect) {
 void CounterWidget::mousePressEvent(QMouseEvent* event) {
 	if (counter.removeExtraColoniesAt(event->x(), event->y())) {
 		update(event->x() - 50, event->y() - 50, 100, 100);
-		update(0, 0, 100, 50);
+		update(0, 0, 300, 50);
 		return;
 	}
 
@@ -133,7 +152,7 @@ void CounterWidget::mousePressEvent(QMouseEvent* event) {
 	counter.addExtraColony(colony);
 
 	update(colony.x - colony.r, colony.y - colony.r, 2*colony.r, 2*colony.r);
-	update(0, 0, 100, 50);
+	update(0, 0, 300, 50);
 }
 
 void CounterWidget::paintEvent(QPaintEvent* event) {

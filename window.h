@@ -34,6 +34,7 @@ Q_OBJECT
 
 private slots:
 	void findColonies();
+	void save();
 	void updateManualSelection(int);
 };
 

@@ -12,7 +12,7 @@ class CounterWidget : public QWidget {
 public:
 	CounterWidget(QWidget *parent) : QWidget(parent) {}
 	void loadImage(const QFile&);
-	void save(const QString& file);
+	void save(const QString& imageFile, const QString& dataFile);
 	void setParams(const cv::SimpleBlobDetector::Params&);
 	void setManualSelection(int threshold);
 
