@@ -31,6 +31,7 @@ public:
 	void findColonies();
 
 	void addExtraColony(const Colony& colony);
+	void resetExtraColonies();
 	bool removeExtraColoniesAt(int x, int y);
 
 	size_t getCount();

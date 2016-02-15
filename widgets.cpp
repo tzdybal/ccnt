@@ -29,36 +29,66 @@ void CounterWidget::loadImage(const QFile& img) {
 	update();
 }
 
-void CounterWidget::save(const QString& imageFile, const QString& dataFile) {
-	QImage img = qtImage;
-	QPainter painter(&img);
-	doPaint(painter, img.rect());
+bool CounterWidget::save(const QString& imageFile, const QString& dataFile) {
+	try { // TODO: remove this ugly try-catch block!
+		QImage img = qtImage;
+		QPainter painter(&img);
+		doPaint(painter, img.rect());
 
-	img.save(imageFile, 0, 95);
+		img.save(imageFile, 0, 95);
 
-	std::ofstream ofs;
-	ofs.open(dataFile.toStdString(), std::ios_base::trunc);
+		std::ofstream ofs;
+		ofs.open(dataFile.toStdString(), std::ios_base::trunc);
 
-	auto params = counter.getParameters();
+		auto params = counter.getParameters();
 
-	ofs << params.minArea << ' '
-		<< params.maxArea << ' '
-		<< params.minThreshold << ' '
-		<< params.maxThreshold << ' '
-		<< params.thresholdStep << ' '
-		<< selectionThreshold << std::endl;
+		ofs << params.minArea << ' '
+			<< params.maxArea << ' '
+			<< params.minThreshold << ' '
+			<< params.maxThreshold << ' '
+			<< params.thresholdStep << ' '
+			<< selectionThreshold << std::endl;
 
-	for (auto c : counter.getExtraColonies()) {
-		ofs << c.x << ' ' << c.y << ' ' << c.r << std::endl;
+		for (auto c : counter.getExtraColonies()) {
+			ofs << c.x << ' ' << c.y << ' ' << c.r << std::endl;
+		}
+
+		ofs.close();
+	} catch (...) {
+		return false;
 	}
 
-	ofs.close();
+	return true;
+}
+
+void CounterWidget::open(const QString& dataFile) {
+	std::ifstream ifs(dataFile.toStdString());
+	auto params = counter.getParameters();
+
+	int selectionThreshold;
+	ifs >> params.minArea
+			>> params.maxArea
+			>> params.minThreshold
+			>> params.maxThreshold
+			>> params.thresholdStep
+			>> selectionThreshold;
+
+	counter.resetExtraColonies();
+	while (ifs.good()) {
+		Colony c(-1, -1, -1);
+		ifs >> c.x >> c.y >> c.r;
+		counter.addExtraColony(c);
+	}
 }
 
 void CounterWidget::setParams(const cv::SimpleBlobDetector::Params& params) {
 	counter.setParameters(params);
 	counter.findColonies();
 	update();
+}
+
+cv::SimpleBlobDetector::Params CounterWidget::getParams() {
+	return counter.getParameters();
 }
 
 void CounterWidget::setManualSelection(int threshold) {

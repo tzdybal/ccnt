@@ -26,15 +26,19 @@ private:
 	QSpinBox* maxAreaBox;
 	QSpinBox* minThresholdBox;
 	QSpinBox* maxThresholdBox;
-	QSpinBox* thresholdStepsBox;
+	QSpinBox* thresholdStepBox;
 	QSpinBox* manualSelectionBox;
 
+	bool maybeSave();
+	void openFile();
 
 Q_OBJECT
 
 private slots:
 	void findColonies();
-	void save();
+	bool save();
+	void open();
+	void openDataFile();
 	void updateManualSelection(int);
 };
 

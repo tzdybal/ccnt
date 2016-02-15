@@ -41,8 +41,7 @@ Counter::Params Counter::getDefaultParameters() {
 	return params;
 }
 
-void Counter::setParameters(const Counter::Params& params)
-{
+void Counter::setParameters(const Counter::Params& params) {
 	parameters = params;
 }
 
@@ -51,13 +50,15 @@ void Counter::findColonies() {
 	detector.detect(img, keypoints);
 }
 
-void Counter::addExtraColony(const Colony& colony)
-{
+void Counter::addExtraColony(const Colony& colony) {
 	extraColonies.push_back(colony);
 }
 
-bool Counter::removeExtraColoniesAt(int x, int y)
-{
+void Counter::resetExtraColonies() {
+	extraColonies.clear();
+}
+
+bool Counter::removeExtraColoniesAt(int x, int y) {
 	auto iter = std::remove_if(extraColonies.begin(), extraColonies.end(), [x, y](const Colony& c) {
 		return std::abs(c.x - x) <= c.r && std::abs(c.y - y) <= c.r;
 	});
@@ -69,13 +70,11 @@ bool Counter::removeExtraColoniesAt(int x, int y)
 	}
 }
 
-size_t Counter::getCount()
-{
+size_t Counter::getCount() {
 	return keypoints.size() + extraColonies.size();
 }
 
-std::vector<Colony> Counter::getAutoColonies()
-{
+std::vector<Colony> Counter::getAutoColonies() {
 	std::vector<Colony> colonies;
 	colonies.reserve(keypoints.size());
 	for (cv::KeyPoint& k : keypoints) {
@@ -84,8 +83,7 @@ std::vector<Colony> Counter::getAutoColonies()
 	return colonies;
 }
 
-std::vector<Colony> Counter::getExtraColonies()
-{
+std::vector<Colony> Counter::getExtraColonies() {
 	return extraColonies;
 }
 

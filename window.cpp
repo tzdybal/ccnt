@@ -2,6 +2,7 @@
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QSpinBox>
 #include <QtWidgets/QPushButton>
+#include <QtWidgets/QFileDialog>
 #include <QtGui/QGuiApplication>
 #include <QtGui/QPainter>
 #include <QtGui/QBrush>
@@ -74,14 +75,14 @@ Window::Window() {
 	++row;
 
 
-	QLabel *thresholdStepsLabel = new QLabel(tr("Threshold steps:"));
-	thresholdStepsBox = new QSpinBox();
-	thresholdStepsBox->setMinimum(1);
-	thresholdStepsBox->setMaximum(100);
-	thresholdStepsBox->setValue(100);
+	QLabel *thresholdStepsLabel = new QLabel(tr("Threshold step:"));
+	thresholdStepBox = new QSpinBox();
+	thresholdStepBox->setMinimum(1);
+	thresholdStepBox->setMaximum(100);
+	thresholdStepBox->setValue(1);
 
 	layout->addWidget(thresholdStepsLabel, row, 0);
-	layout->addWidget(thresholdStepsBox, row, 1);
+	layout->addWidget(thresholdStepBox, row, 1);
 	++row;
 
 	QLabel *manualSelectionLabel = new QLabel(tr("Selection threshold:"));
@@ -89,6 +90,7 @@ Window::Window() {
 	manualSelectionBox->setMinimum(0);
 	manualSelectionBox->setMaximum(100);
 	manualSelectionBox->setValue(30);
+	updateManualSelection(30);
 
 
 	layout->addWidget(manualSelectionLabel, row, 0);
@@ -97,11 +99,23 @@ Window::Window() {
 
 	QObject::connect(manualSelectionBox, SIGNAL(valueChanged(int)), this, SLOT(updateManualSelection(int)));
 
+	QPushButton *openImageButton = new QPushButton(tr("Open image"));
+	layout->addWidget(openImageButton, row, 0, 1, 2);
+	++row;
+
+	QObject::connect(openImageButton, SIGNAL(clicked(bool)), this, SLOT(open()));
+
 	QPushButton *findColoniesButton = new QPushButton(tr("Find colonies"));
 	layout->addWidget(findColoniesButton, row, 0, 1, 2);
 	++row;
 
 	QObject::connect(findColoniesButton, SIGNAL(clicked(bool)), this, SLOT(findColonies()));
+
+	QPushButton *openButton = new QPushButton(tr("Open data file"));
+	layout->addWidget(openButton, row, 0, 1, 2);
+	++row;
+
+	QObject::connect(openButton, SIGNAL(clicked(bool)), this, SLOT(openDataFile()));
 
 	QPushButton *saveButton = new QPushButton(tr("Save"));
 	layout->addWidget(saveButton, row, 0, 1, 2);
@@ -131,6 +145,23 @@ void Window::loadImage(const QString& file)
 	this->file = file;
 }
 
+bool Window::maybeSave() {
+	if (!file.isEmpty()) {
+		QMessageBox::StandardButton ret;
+		ret = QMessageBox::warning(this, tr("Counter"),
+								   tr("Do you want to save your changes?"),
+								   QMessageBox::Save | QMessageBox::Discard
+								   | QMessageBox::Cancel);
+		if (ret == QMessageBox::Save) {
+			return save();
+		} else if (ret == QMessageBox::Cancel) {
+			return false;
+		}
+	} else {
+		return false;
+	}
+}
+
 void Window::findColonies() {
 	counterWidget->loadImage(file);
 	cv::SimpleBlobDetector::Params params = Counter::getDefaultParameters();
@@ -138,53 +169,51 @@ void Window::findColonies() {
 	params.maxArea = maxAreaBox->value();
 	params.minThreshold = minThresholdBox->value();
 	params.maxThreshold = maxThresholdBox->value();
-	params.thresholdStep = std::floor(1.0 * (params.maxThreshold - params.minThreshold) / thresholdStepsBox->value());
+	params.thresholdStep = thresholdStepBox->value();
 	counterWidget->setParams(params);
 	counterWidget->adjustSize();
-
-	/*
-	cv::Mat	img = cv::imread(file.toStdString());
-	Counter counter(img);
-	counter.findColonies();
-
-	QImage image = util::openCVtoQtImage(img);
-
-	counter.findColonies();
-
-	QPainter painter(&image);
-
-	painter.setPen(QPen(Qt::red));
-	for (Colony& c : counter.getAutoColonies()) {
-		painter.drawEllipse(c.x-c.r, c.y-c.r, 2*c.r, 2*c.r);
-	}
-
-	painter.setPen(QPen(Qt::green));
-	for (Colony& c : counter.getExtraColonies()) {
-		painter.drawEllipse(c.x-c.r, c.y-c.r, 2*c.r, 2*c.r);
-	}
-
-	if (image.isNull()) {
-		QMessageBox::information(this, QGuiApplication::applicationDisplayName(),
-								 QString("Cannot load " + QDir::toNativeSeparators(file)));
-		setWindowFilePath(QString());
-		imageLabel->setPixmap(QPixmap());
-		imageLabel->adjustSize();
-	}
-	imageLabel->setPixmap(QPixmap::fromImage(image));
-	//scaleFactor = 1.0;
-
-	imageLabel->adjustSize();
-	*/
-
 
 	setWindowFilePath(file);
 }
 
-void Window::save() {
-	QString img(file.replace(".jpg", "_results.jpg", Qt::CaseInsensitive));
+bool Window::save() {
+	QString fileName = file;
+	QString img(fileName.replace(".jpg", "_results.jpg", Qt::CaseInsensitive));
 
+	fileName = file;
 	QString data(file.replace(".jpg", "_results.cvs", Qt::CaseInsensitive));
 	counterWidget->save(img, data);
+
+	QMessageBox::information(this, tr("Counter"),
+							 tr("Results saved!"));
+}
+
+void Window::open() {
+	if (maybeSave()) {
+		QString fileName = QFileDialog::getOpenFileName(this,
+								   tr("Open File"), QDir::currentPath());
+		if (!fileName.isEmpty()) {
+			file = fileName;
+			counterWidget->loadImage(fileName);
+		}
+	}
+}
+
+void Window::openDataFile()
+{
+	if (maybeSave()) {
+		QString fileName = QFileDialog::getOpenFileName(this,
+								   tr("Open File"), QDir::currentPath());
+		if (!fileName.isEmpty()) {
+			counterWidget->open(fileName);
+			auto params = counterWidget->getParams();
+			minAreaBox->setValue(params.minArea);
+			maxAreaBox->setValue(params.maxArea);
+			minThresholdBox->setValue(params.minThreshold);
+			maxThresholdBox->setValue(params.maxThreshold);
+			thresholdStepBox->setValue(params.thresholdStep);
+		}
+	}
 }
 
 void Window::updateManualSelection(int threshold) {

@@ -14,8 +14,6 @@ int main(int argc, char** argv) {
 	ccnt::Window window;
 	if (!commandLineParser.positionalArguments().isEmpty()) {
 		window.loadImage(commandLineParser.positionalArguments().front());
-	} else {
-		return -1;
 	}
 	window.showMaximized();
 	return app.exec();
